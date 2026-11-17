@@ -1,0 +1,685 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>KernelShift Docs</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🪜</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wdth,wght@75..100,400..700&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: three-column reference manual (navigation · 72ch article · on-this-page), same tokens as the landing
+   page; extension colours only where a page talks about an instruction-set extension. */
+:root {
+  --bg: #F7F6F2;
+  --surface: #FFFFFF;
+  --ink: #1F1E1A;
+  --muted: #5D5C56;
+  --rule: #DDDBD4;
+  --soft: #EFEDE7;
+  --link: #0068A3;
+  --neon: #7B7A73;
+  --sve: #0068A3;
+  --sve2: #007A57;
+  --sme2: #C25200;
+  --note: #E0EDF6;
+  --warn: #FAE5D6;
+  --font-display: "Instrument Sans", "Helvetica Neue", Arial, sans-serif;
+  --font-body: "Instrument Sans", "Helvetica Neue", Arial, sans-serif;
+  --fs-xs: 12px; --fs-sm: 13px; --fs-md: 15px; --fs-base: 16px; --fs-lg: 18px; --fs-h3: 20px; --fs-stat: 28px;
+  --font-mono: "JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #12110F; --surface: #1A1917; --ink: #EEEDE8; --muted: #B0AEA6; --rule: #34322E; --soft: #23221F;
+    --link: #56B4E9; --neon: #A9A79F; --sve: #56B4E9; --sve2: #3CC79E; --sme2: #F28A4A; --note: #13293A; --warn: #3A2312;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #12110F; --surface: #1A1917; --ink: #EEEDE8; --muted: #B0AEA6; --rule: #34322E; --soft: #23221F;
+  --link: #56B4E9; --neon: #A9A79F; --sve: #56B4E9; --sve2: #3CC79E; --sme2: #F28A4A; --note: #13293A; --warn: #3A2312;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--ink); font-family: var(--font-body); font-size: var(--fs-base); line-height: 1.6; }
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 10; background: var(--surface); }
+a { color: var(--link); text-underline-offset: 2px; }
+code { font-family: var(--font-mono); font-size: .88em; background: var(--soft); padding: 1px 5px; border-radius: 3px; }
+
+/* top bar */
+.top { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 6; background: var(--surface); border-bottom: 1px solid var(--rule); }
+.top .in { display: flex; align-items: center; gap: 18px; height: 56px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+.wordmark { font-family: var(--font-display); font-weight: 700; letter-spacing: -.02em; font-size: var(--fs-lg); text-decoration: none; color: var(--ink); white-space: nowrap; }
+.wordmark span { color: var(--sme2); }
+.wordmark em { font-style: normal; font-family: var(--font-body); font-weight: 500; font-size: var(--fs-xs); color: var(--muted); margin-left: 8px; letter-spacing: .06em; text-transform: uppercase; }
+.search { flex: 1; max-width: 360px; position: relative; }
+.search input { width: 100%; font: var(--fs-md) var(--font-body); padding: 8px 12px 8px 32px; border-radius: 6px; border: 1px solid var(--rule); background: var(--bg); color: var(--ink); }
+.search input:focus-visible { outline: 2px solid var(--sve); outline-offset: 1px; }
+.search svg { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); width: 14px; height: 14px; }
+.top nav { display: flex; gap: 18px; margin-left: auto; }
+.top nav a { color: var(--muted); text-decoration: none; font-size: var(--fs-md); white-space: nowrap; }
+.top nav a:hover, .top nav a:focus-visible { color: var(--ink); }
+.menu-btn { display: none; font: 500 var(--fs-sm) var(--font-body); padding: 7px 12px; border: 1px solid var(--rule); border-radius: 5px; background: var(--bg); color: var(--ink); cursor: pointer; }
+
+/* shell */
+.shell { display: grid; grid-template-columns: 252px minmax(0, 1fr) 200px; max-width: 1320px; margin: 0 auto; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); gap: 40px; }
+.side { position: sticky; top: calc(56px + env(safe-area-inset-top, 0px)); align-self: start; max-height: calc(100vh - 56px); overflow-y: auto; padding-block: 28px 40px; }
+.group { margin-bottom: 22px; }
+.group h4 { font-family: var(--font-body); font-weight: 500; font-size: var(--fs-xs); letter-spacing: .1em; text-transform: uppercase; color: var(--muted); margin: 0 0 8px; }
+.group ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 1px; }
+.group a, .group .soon { display: flex; justify-content: space-between; gap: 8px; padding: 6px 10px; border-radius: 5px; font-size: var(--fs-sm); color: var(--ink); text-decoration: none; }
+.group a:hover { background: var(--soft); }
+.group a:focus-visible { outline: 2px solid var(--sve); outline-offset: -2px; }
+.group a[aria-current="page"] { background: var(--soft); font-weight: 600; box-shadow: inset 2px 0 0 var(--sme2); }
+.group .soon { color: var(--muted); cursor: default; }
+.group .soon small { font-family: var(--font-body); font-size: var(--fs-xs); letter-spacing: .06em; text-transform: uppercase; border: 1px solid var(--rule); border-radius: 3px; padding: 0 5px; align-self: center; }
+.nohit { font-size: var(--fs-sm); color: var(--muted); padding: 6px 10px; }
+
+main { padding-block: 32px 64px; min-width: 0; }
+article { max-width: 72ch; }
+.crumb { font-family: var(--font-body); font-size: var(--fs-xs); color: var(--muted); letter-spacing: .06em; text-transform: uppercase; }
+article h1 { font-family: var(--font-display); font-weight: 700; font-size: clamp(28px, 3.6vw, 38px); letter-spacing: -.025em; line-height: 1.12; margin: 8px 0 12px; text-wrap: balance; }
+article .lead { font-size: var(--fs-lg); color: var(--muted); margin: 0 0 8px; }
+article .lead b { font-weight: 600; color: var(--ink); }
+/* long paths in running text may break anywhere on narrow screens */
+article p code, article li code, .callout code { overflow-wrap: anywhere; }
+article h2 { font-family: var(--font-display); font-weight: 650; letter-spacing: -.015em; font-size: 22px; margin: 40px 0 10px; padding-top: 8px; border-top: 1px solid var(--rule); text-wrap: balance; scroll-margin-top: 72px; }
+article h3 { font-family: var(--font-display); font-weight: 700; font-size: var(--fs-lg); margin: 24px 0 6px; }
+article p, article li { margin: 0 0 12px; }
+article ul, article ol { padding-left: 22px; margin: 0 0 12px; }
+pre { position: relative; margin: 0 0 16px; padding: 16px 18px; background: var(--surface); border: 1px solid var(--rule); border-radius: 6px; overflow-x: auto; font: var(--fs-sm)/1.65 var(--font-mono); }
+pre .c { color: var(--muted); }
+pre .p { color: var(--sme2); user-select: none; }
+pre .s { color: var(--sve2); }
+pre .k { color: var(--sve); }
+.codehead { display: flex; justify-content: space-between; align-items: center; font-family: var(--font-mono); font-size: var(--fs-xs); color: var(--muted); padding: 6px 2px; }
+.copy { font: 500 var(--fs-xs) var(--font-body); padding: 3px 9px; border: 1px solid var(--rule); border-radius: 3px; background: var(--surface); color: var(--ink); cursor: pointer; }
+.copy:focus-visible { outline: 2px solid var(--sve); outline-offset: 2px; }
+.tbl { overflow-x: auto; margin: 0 0 16px; border: 1px solid var(--rule); border-radius: 6px; background: var(--surface); }
+table { width: 100%; border-collapse: collapse; font-size: var(--fs-md); }
+th, td { text-align: left; padding: 9px 12px; border-bottom: 1px solid var(--rule); vertical-align: top; }
+tr:last-child td { border-bottom: 0; }
+th { font-family: var(--font-body); font-weight: 500; font-size: var(--fs-sm); letter-spacing: .06em; text-transform: uppercase; color: var(--muted); background: var(--soft); }
+td code { white-space: nowrap; }
+.callout { border: 1px solid var(--rule); border-left: 3px solid var(--sve); background: var(--note); border-radius: 0 6px 6px 0; padding: 12px 16px; margin: 0 0 16px; font-size: var(--fs-md); }
+.callout.warn { border-left-color: var(--sme2); background: var(--warn); }
+.callout b { font-family: var(--font-body); font-size: var(--fs-xs); letter-spacing: .08em; text-transform: uppercase; display: block; margin-bottom: 2px; }
+.flow3 { margin: 16px 0 8px; display: grid; grid-template-columns: minmax(0, 1fr) 52px minmax(0, 1fr) 52px minmax(0, 1fr); align-items: stretch; }
+.f3 { display: grid; gap: 6px; align-content: start; text-align: center; padding: 14px 12px; border: 1px solid var(--rule); border-radius: 6px; background: var(--surface); min-width: 0; }
+.f3 b { font-family: var(--font-display); font-weight: 600; font-size: var(--fs-md); }
+.f3 span { font-size: var(--fs-sm); color: var(--muted); line-height: 1.5; }
+.f3 code { font-size: var(--fs-sm); }
+.f3a { position: relative; align-self: center; height: 2px; margin: 0 6px; background: var(--muted); }
+.f3a::after { content: ""; position: absolute; right: -1px; top: -4px; border-top: 5px solid transparent; border-bottom: 5px solid transparent; border-left: 7px solid var(--muted); }
+.f3a { font-size: 0; }
+.f3back { grid-column: 1 / -1; margin: 12px 0 0; text-align: center; font-size: var(--fs-sm); font-weight: 600; color: var(--muted); }
+.f3back::before { content: "← "; }
+.cards { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin: 16px 0 8px; }
+.card { display: grid; align-content: start; gap: 4px; padding: 16px; border: 1px solid var(--rule); border-radius: 6px; background: var(--surface); text-decoration: none; color: var(--ink); }
+.card:hover, .card:focus-visible { border-color: var(--ink); }
+.card strong { font-family: var(--font-display); font-weight: 600; font-size: var(--fs-base); }
+.card span { font-size: var(--fs-md); color: var(--muted); }
+.tree { font: var(--fs-sm)/1.7 var(--font-mono); }
+.isa-dot { display: inline-block; width: 9px; height: 9px; border-radius: 2px; margin-right: 8px; vertical-align: 1px; }
+.pager { display: flex; justify-content: space-between; gap: 12px; margin-top: 48px; padding-top: 18px; border-top: 1px solid var(--rule); max-width: 72ch; }
+.pager a { display: grid; gap: 2px; text-decoration: none; padding: 10px 14px; border: 1px solid var(--rule); border-radius: 6px; background: var(--surface); color: var(--ink); min-width: 0; }
+.pager a:hover, .pager a:focus-visible { border-color: var(--ink); }
+.pager a small { font-family: var(--font-body); font-size: var(--fs-xs); color: var(--muted); text-transform: uppercase; letter-spacing: .06em; }
+.pager a.next { margin-left: auto; text-align: right; }
+.toc { position: sticky; top: calc(56px + env(safe-area-inset-top, 0px)); align-self: start; padding-block: 36px; font-size: var(--fs-sm); }
+.toc h4 { font-family: var(--font-body); font-weight: 500; font-size: var(--fs-xs); letter-spacing: .1em; text-transform: uppercase; color: var(--muted); margin: 0 0 10px; }
+.toc ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; border-left: 1px solid var(--rule); }
+.toc a { color: var(--muted); text-decoration: none; padding-left: 12px; display: block; }
+.toc a:hover, .toc a:focus-visible { color: var(--ink); }
+
+@media (max-width: 1100px) { .shell { grid-template-columns: 236px minmax(0, 1fr); } .toc { display: none; } }
+@media (max-width: 760px) {
+  .flow3 { grid-template-columns: minmax(0, 1fr); }
+  .f3a { justify-self: center; width: 2px; height: 26px; margin: 4px 0; }
+  .f3a::after { right: auto; top: auto; left: -4px; bottom: -1px; border-left: 5px solid transparent; border-right: 5px solid transparent; border-top: 7px solid var(--muted); border-bottom: 0; }
+  .f3back::before { content: "↑ "; }
+  .shell { grid-template-columns: minmax(0, 1fr); gap: 0; }
+  .menu-btn { display: inline-block; }
+  .top nav, .wordmark em { display: none; }
+  .side { position: static; max-height: none; padding-block: 12px; border-bottom: 1px solid var(--rule); }
+  .side:not(.open) { display: none; }
+  .cards { grid-template-columns: minmax(0, 1fr); }
+}
+</style>
+
+<header class="top">
+  <div class="in">
+    <a class="wordmark" href="#introduction">Kernel<span>Shift</span><em>Docs</em></a>
+    <button class="menu-btn" id="menu-btn" type="button" aria-expanded="false" aria-controls="side">Menu</button>
+    <label class="search" for="q">
+      <svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="7" cy="7" r="5" fill="none" stroke="currentColor" stroke-width="1.6"></circle><path d="M11 11l3.5 3.5" stroke="currentColor" stroke-width="1.6" fill="none"></path></svg>
+      <input id="q" type="search" placeholder="Search pages" autocomplete="off">
+    </label>
+    <nav aria-label="Site">
+      <a href="../">Home</a>
+      <a href="https://github.com/ArtificialRay/KernelShift">Code</a>
+      <a href="https://huggingface.co/datasets/arm-bench/KernelShift">Dataset</a>
+    </nav>
+  </div>
+</header>
+
+<div class="shell">
+  <aside class="side" id="side" aria-label="Documentation">
+    <div class="group"><h4>Getting started</h4><ul>
+      <li><a href="#introduction" data-k="overview what is benchmark">Introduction</a></li>
+      <li><a href="#installation" data-k="install python clang dataset hf download">Installation</a></li>
+      <li><a href="#quickstart" data-k="run kernel locally bench cli">Quickstart</a></li>
+    </ul></div>
+    <div class="group"><h4>Concepts</h4><ul>
+      <li><a href="#task-format" data-k="definition workload solution trace schema json">Task format</a></li>
+      <li><a href="#hardware" data-k="isa extension processor instance neon sve sve2 sme2 graviton m4 march hardware">Processors and extensions</a></li>
+      <li><a href="#scoring" data-k="correctness speedup timing sqnr tolerance">Scoring</a></li>
+      <li><a href="#datasets" data-k="ncnn llama.cpp simd loops kleidiai evaluation set subset authors baseline hugging face">Datasets</a></li>
+    </ul></div>
+    <div class="group"><h4>Guides</h4><ul>
+      <li><a href="#run-an-agent" data-k="bench_fleet harness ec2 claude codex nanobot">Run an agent</a></li>
+      <li><a href="#own-harness" data-k="mcp client launch_session adapter endpoint tunnel">Bring your own harness</a></li>
+      <li><a href="#kgen" data-k="new task definition workload solution skills check autovec capture calibrate">Add a kernel with kgen</a></li>
+      <li><a href="#e2e" data-k="llama.cpp end to end qwen llama llama-bench tokens graviton4">End to end in llama.cpp</a></li>
+      <li><a href="#aws-setup" data-k="aws terraform ec2 security group ssh key dedicated host mac teardown">AWS setup</a></li>
+    </ul></div>
+    <div class="group"><h4>Reference</h4><ul>
+      <li><a href="#mcp-tools" data-k="compile evaluate disassemble check_progress server">MCP tools</a></li>
+      <li><a href="#cli" data-k="bench.cli bench summary list retime collect-baselines">CLI</a></li>
+      <li><a href="#configuration" data-k="config yaml json environment variables workspaces llm providers env">Configuration</a></li>
+    </ul></div>
+    <p class="nohit" id="nohit" hidden>No page matches.</p>
+  </aside>
+
+  <main>
+    <article data-page="introduction">
+      <p class="crumb">Getting started</p>
+      <h1>Introduction</h1>
+      <p class="lead">Arm keeps adding instruction-set extensions, and fast kernels have to be rewritten for each one. KernelShift measures whether coding agents can do that rewrite. It has two parts: a <b>benchmarking pipeline</b> (kgen) that collects tasks from open-source libraries, and a set of <b>environments</b> that check and time each kernel on real Neon, SVE, SVE2 and SME2 processors. The benchmark has 144 kernels from four libraries; the current evaluation set uses 99 of them.</p>
+      <p>Each task is a kernel from a production library with a reference implementation, workloads taken from real models, and an expert implementation to beat. Through MCP tools, the agent compiles its kernel, tests and times it, and reads the generated assembly, all on the target processor. A kernel scores only if it is correct on every workload, and its score is the speedup over the expert implementation.</p>
+      <div class="cards">
+        <a class="card" href="#quickstart"><strong>Quickstart</strong><span>Check and time one kernel on your own computer.</span></a>
+        <a class="card" href="#datasets"><strong>Datasets</strong><span>The 144 kernels, the 99 in the evaluation set, and where they come from.</span></a>
+        <a class="card" href="#kgen"><strong>Add a kernel with kgen</strong><span>Turn a kernel from a library into a new task.</span></a>
+        <a class="card" href="#run-an-agent"><strong>Run an agent</strong><span>Claude Code, Codex, nanobot and others on EC2.</span></a>
+      </div>
+      <h2 id="how-a-run-works">How a run works</h2>
+      <p>Every harness talks to a KernelShift server over MCP and gets the same tools. The server runs on a cloud instance with the target processor, one per target, and the harness reaches it through an SSH tunnel. Each call compiles, checks and times the code right there, and the result goes back to the agent.</p>
+      <figure class="flow3" aria-label="An agent harness calls the KernelShift server on the target instance, which runs the code on that processor; correctness and performance results go back to the agent">
+        <div class="f3"><b>Agent harness</b><span>Claude Code · Codex · nanobot · tool-call loop · …</span></div>
+        <span class="f3a" aria-hidden="true">call</span>
+        <div class="f3"><b>KernelShift server</b><span>on the target instance</span><span><code>compile</code> · <code>evaluate</code> · <code>disassemble</code></span></div>
+        <span class="f3a" aria-hidden="true">runs on</span>
+        <div class="f3"><b>Target processor</b><span>Graviton3 (SVE) · Graviton4 (SVE2) · Apple M4 (SME2) · …</span></div>
+        <p class="f3back">results: correctness + performance</p>
+      </figure>
+      <h2 id="sources">Where the kernels come from</h2>
+      <div class="tbl"><table>
+        <thead><tr><th>Source</th><th>Kernels</th><th>Expert reference</th></tr></thead>
+        <tbody>
+          <tr><td><a href="https://github.com/Tencent/ncnn">ncnn</a></td><td>Conv2D, depthwise Conv2D, pooling (FP32, INT8)</td><td>ncnn's Neon kernels</td></tr>
+          <tr><td><a href="https://github.com/ggml-org/llama.cpp">llama.cpp</a></td><td>GEMM (FP32 to 4-bit), RMSNorm, attention, MoE</td><td>ggml CPU kernels</td></tr>
+          <tr><td><a href="https://gitlab.arm.com/architecture/simd-loops">Arm SIMD Loops</a></td><td>Standalone loops <code>loop_001</code> … <code>loop_223</code></td><td>Arm's hand-written SVE, SVE2 and SME2 versions</td></tr>
+          <tr><td><a href="https://gitlab.arm.com/kleidi/kleidiai">KleidiAI</a></td><td>GEMM and convolution micro-kernels</td><td>Arm's vendor micro-kernels</td></tr>
+        </tbody>
+      </table></div>
+      <p>The tasks live in the Hugging Face dataset <a href="https://huggingface.co/datasets/arm-bench/KernelShift"><code>arm-bench/KernelShift</code></a>. Its <code>TASKS.md</code> lists, for every definition, the expert baseline on each hardware tier and whether it runs there.</p>
+    </article>
+
+    <article data-page="installation" hidden>
+      <p class="crumb">Getting started</p>
+      <h1>Installation</h1>
+      <p class="lead">You need Python 3.12 or later and <code>clang++</code>. Apple clang works on macOS.</p>
+      <h2 id="install-code">Get the code and the dataset</h2>
+      <div class="codehead"><span>shell</span><button class="copy" type="button">Copy</button></div>
+<pre><code style="background:none;padding:0">git clone https://github.com/ArtificialRay/KernelShift && cd KernelShift
+python3 -m venv .venv && . .venv/bin/activate
+pip install -r requirements.txt
+hf download arm-bench/KernelShift --repo-type dataset --local-dir bench-trace</code></pre>
+      <h2 id="install-check">Check that the dataset loaded</h2>
+      <p>Every tool reads the dataset from <code>bench-trace/</code>.</p>
+<pre><span class="p">$ </span>python -m bench.cli summary
+{
+  "definitions": 144,
+  "solutions": 403,
+  "workloads": 1968,
+  ...</pre>
+      <div class="callout"><b>Note</b>Running an agent needs an AWS account as well: see <a href="#run-an-agent">Run an agent</a>. Checking and timing a kernel does not.</div>
+    </article>
+
+    <article data-page="quickstart" hidden>
+      <p class="crumb">Getting started</p>
+      <h1>Quickstart</h1>
+      <p class="lead">Compile a solution, check it against the reference on every workload, and time it. No AWS account or agent is involved.</p>
+      <h2 id="qs-run">Run one kernel</h2>
+      <div class="codehead"><span>shell</span><button class="copy" type="button">Copy</button></div>
+<pre><code style="background:none;padding:0">python -m bench.cli bench --definition loop_001 --solution reference-scalar_loop_001 --dataset simd-loop --isa sve</code></pre>
+      <p>Each line is one workload: its id, the verdict, the minimum and 5th-percentile time, and the largest absolute and relative error against the reference.</p>
+<pre>  6bfe094b  PASSED  min=9.08us  p5=9.15us  max_abs=0.00e+00  max_rel=0.00e+00
+  06735e72  PASSED  min=43.30us  p5=43.82us  max_abs=0.00e+00  max_rel=0.00e+00
+  ...</pre>
+      <h2 id="qs-hw">Pick a processor that has the instructions</h2>
+      <p>Scalar and Neon code runs on any 64-bit Arm processor. SVE needs Graviton3, SVE2 needs Graviton4 and SME2 needs Apple M4. An SVE kernel run on Apple silicon fails with <code>RUNTIME_ERROR ... SIGILL</code>.</p>
+      <h2 id="qs-list">See what there is to run</h2>
+<pre><code style="background:none;padding:0">python -m bench.cli list-definitions
+python -m bench.cli list-solutions</code></pre>
+    </article>
+
+    <article data-page="task-format" hidden>
+      <p class="crumb">Concepts</p>
+      <h1>Task format</h1>
+      <p class="lead">A task is four kinds of file in <code>bench-trace/</code>. Every evaluation writes a fifth: the trace.</p>
+<pre class="tree">bench-trace/
+  definitions/&lt;op_type&gt;/&lt;name&gt;.json            <span class="c"># what to compute, with a Python reference</span>
+  workloads/&lt;op_type&gt;/&lt;name&gt;.jsonl            <span class="c"># concrete sizes and inputs, one per line</span>
+  solutions/&lt;dataset&gt;/&lt;author&gt;/&lt;op_type&gt;/&lt;name&gt;.json  <span class="c"># an implementation</span>
+  tensors/&lt;op_type&gt;/&lt;name&gt;/*.npy              <span class="c"># inputs captured from real model runs</span></pre>
+      <h2 id="tf-def">Definition</h2>
+      <p>The shapes, dtypes and tags of one kernel, and a NumPy reference that defines correct output. Axes are either <code>var</code> (set per workload) or <code>const</code> (baked into the kernel). This is <code>rms_norm_fp32_d2048</code> from llama.cpp:</p>
+<pre>{
+  "name": "rms_norm_fp32_d2048",
+  "op_type": "rms_norm",
+  "tags": ["status:active", "model:qwen1.5-moe-a2.7b", "baseline-solution:llama.cpp"],
+  "axes": { "M": { "type": "var" }, "D": { "type": "const", "value": 2048 } },
+  "inputs":  { "x": { "shape": ["M", "D"], "dtype": "float32" },
+               "weight": { "shape": ["D"], "dtype": "float32" } },
+  "outputs": { "output": { "shape": ["M", "D"], "dtype": "float32" } },
+  "reference": "def run(x, weight): ..."
+}</pre>
+      <h2 id="tf-wl">Workload</h2>
+      <p>One line per concrete size. Inputs are generated (<code>random</code>, seeded by the workload id) or loaded from a captured tensor.</p>
+<pre>{"axes": {"M": 6}, "inputs": {"x": {"type": "random"}, "weight": {"type": "random"}},
+ "uuid": "4afccae94503552f86d5d6afeba0bdc0"}</pre>
+      <h2 id="tf-sol">Solution</h2>
+      <p>Source files plus a build spec. Every task ships two: <code>reference-scalar</code>, plain C++ that is the agent's starting point, and the library's own kernel (for example <code>baseline-llamacpp</code>), which the agent has to beat. The agent edits only <code>kernel.cpp</code>; the harness adds the binding files.</p>
+<pre>{
+  "definition": "rms_norm_fp32_d2048",
+  "dataset": "llama.cpp",
+  "author": "reference-scalar",
+  "spec": {
+    "language": "cpp",
+    "target_hardware": ["graviton3", "aarch64-sve"],
+    "entry_point": "rms_norm.cpp::kernelshift_entry_rms_norm",
+    "isa_features": [],
+    "compile_flags": ["-O2", "-std=c++14"]
+  },
+  "sources": [ "rms_norm.h", "rms_norm.cpp", "kernel.cpp" ]
+}</pre>
+      <h2 id="tf-trace">Trace</h2>
+      <p>The record of one solution evaluated on one workload: the verdict, the correctness metrics, the timing samples, and the timing protocol they were taken with. Traces from different protocols are never compared.</p>
+      <div class="callout"><b>Tags that change evaluation</b><code>correctness:sqnr</code> switches the check from element-wise tolerances to a signal-to-quantization-noise floor, and <code>e2e:&lt;model&gt;</code> marks the kernels spliced into llama.cpp for the end-to-end runs.</div>
+    </article>
+
+    <article data-page="hardware" hidden>
+      <p class="crumb">Concepts</p>
+      <h1>Processors and extensions</h1>
+      <p class="lead">Each instruction-set extension is a separate target, chosen with <code>--isa</code>. It compiles with its own flags and runs on an EC2 instance whose processor has those instructions. Settings come from <code>config/kernel_contracts.yaml</code>.</p>
+      <div class="tbl"><table>
+        <thead><tr><th>Extension</th><th>Compile flags</th><th>Features</th><th>Instance (processor)</th></tr></thead>
+        <tbody>
+          <tr><td><span class="isa-dot" style="background:var(--neon)"></span>Neon</td><td><code>-march=armv8-a</code></td><td>128-bit Advanced SIMD</td><td>c7g.xlarge (Graviton3)</td></tr>
+          <tr><td><span class="isa-dot" style="background:var(--sve)"></span>SVE</td><td><code>-march=armv8.2-a+sve</code></td><td>sve, dotprod, i8mm; 256-bit vectors</td><td>c7g.xlarge (Graviton3)</td></tr>
+          <tr><td><span class="isa-dot" style="background:var(--sve2)"></span>SVE2</td><td><code>-march=armv9-a+sve2</code></td><td>sve, sve2, dotprod, i8mm; 128-bit vectors</td><td>c8g.xlarge (Graviton4)</td></tr>
+          <tr><td><span class="isa-dot" style="background:var(--sme2)"></span>SME2</td><td><code>-mcpu=apple-m4</code></td><td>sme2; 512-bit streaming vectors, ZA</td><td>mac-m4.metal (Apple M4)</td></tr>
+        </tbody>
+      </table></div>
+      <h2 id="hw-ladder">Each extension includes the one before</h2>
+      <p>A solution that declares <code>isa_features: ["sve"]</code> also runs on the SVE2 target, because SVE2 is a strict superset of SVE. The rule stops at SME2.</p>
+      <h2 id="hw-m4">Why SME2 uses <code>-mcpu=apple-m4</code></h2>
+      <p>No Graviton processor implements SME, so the SME2 target runs on Apple M4. Its cores run SVE instructions only in streaming mode. With <code>-march=armv9-a+sme2</code>, plain SVE code compiles and then dies with <code>SIGILL</code>; <code>-mcpu=apple-m4</code> rejects it at compile time, which gives the agent an error it can act on.</p>
+      <div class="callout warn"><b>Cost</b>An M4 needs an EC2 Dedicated Host, which AWS bills for at least 24 hours. Provisioning never allocates one: allocate it yourself and release it when done.</div>
+    </article>
+
+    <article data-page="scoring" hidden>
+      <p class="crumb">Concepts</p>
+      <h1>Scoring</h1>
+      <p class="lead">A version counts only if it is correct on every workload. Among correct versions, the score is the speedup over the expert kernel.</p>
+      <h2 id="sc-correct">Correctness</h2>
+      <p>Each workload's output is compared with the definition's reference. Most kernels use element-wise absolute and relative tolerances set per op type. Quantized kernels tagged <code>correctness:sqnr</code> must reach a signal-to-quantization-noise floor set relative to what the reference implementation itself scores on that workload. <code>evaluate</code> stops at the first failing workload.</p>
+      <h2 id="sc-time">Timing</h2>
+      <ul>
+        <li>10 warmup samples, then 50 timed samples; the score uses the minimum.</li>
+        <li>Each sample repeats the kernel until it lasts at least 10 ms (<code>inner_iters: auto</code>), so short calls are not lost in timer noise.</li>
+        <li>The expert kernel is timed the same way on the same processor.</li>
+        <li>Each run uses one core and its own process.</li>
+      </ul>
+      <h2 id="sc-speedup">Speedup@40</h2>
+      <p>For one kernel, the speedup of a version is the geometric mean over workloads of expert time divided by kernel time. Speedup@40 is the best speedup among correct versions within the first 40 tool calls. A benchmark result is the geometric mean of Speedup@40 over kernels, reported with the share of kernels above 1.0.</p>
+      <div class="callout"><b>Every kernel has a score</b>A session starts by compiling the scalar starting point unchanged and evaluating it, so even a run that never finds a faster version is scored.</div>
+    </article>
+
+    <article data-page="datasets" hidden>
+      <p class="crumb">Concepts</p>
+      <h1>Datasets</h1>
+      <p class="lead">The Hugging Face dataset <a href="https://huggingface.co/datasets/arm-bench/KernelShift"><code>arm-bench/KernelShift</code></a> holds 144 definitions. 99 of them are the current evaluation set.</p>
+      <div class="tbl"><table>
+        <thead><tr><th>Library</th><th><code style="background:none;padding:0">--dataset</code></th><th>Definitions</th><th>Evaluated</th><th>Expert author</th></tr></thead>
+        <tbody>
+          <tr><td>ncnn</td><td><code>ncnn</code></td><td>23</td><td>23</td><td><code>baseline-ncnn</code></td></tr>
+          <tr><td>llama.cpp</td><td><code>llama.cpp</code></td><td>26, plus 18 end-to-end</td><td>26</td><td><code>baseline-llamacpp</code></td></tr>
+          <tr><td>Arm SIMD Loops</td><td><code>simd-loop</code></td><td>47</td><td>24</td><td><code>baseline-simd-loop-sve</code>, <code>baseline-simd-loop-sve2</code>, <code>baseline-simd-loop-sme2</code></td></tr>
+          <tr><td>KleidiAI</td><td><code>kleidiai</code></td><td>30</td><td>26</td><td><code>baseline-kleidiai</code></td></tr>
+        </tbody>
+      </table></div>
+      <p>The 18 end-to-end definitions are the matrix multiplies of two models, tagged <code>e2e:&lt;model&gt;</code>; see <a href="#e2e">End to end in llama.cpp</a>.</p>
+      <h2 id="ds-sets">Evaluation sets</h2>
+      <ul>
+        <li><code>expected_sets.json</code>: the 99 evaluated definitions.</li>
+        <li><code>subset_sve.json</code> and <code>subset_sme2.json</code>: a 32-definition sample for the SVE and SME2 targets. They differ only in the KleidiAI matrix multiply.</li>
+        <li><code>TASKS.md</code>: every definition with its expert solution on each target, and whether it runs there.</li>
+      </ul>
+      <h2 id="ds-authors">Solution authors</h2>
+      <ul>
+        <li><code>reference-scalar</code>: the plain C++ starting point.</li>
+        <li><code>baseline-*</code>: the library's own kernel, which the agent has to beat. SIMD Loops has one per extension; the others use the same one everywhere.</li>
+        <li><code>autovec</code> (SIMD Loops): the loop as the compiler auto-vectorizes it.</li>
+        <li>Agent runs save their best kernel as <code>&lt;harness&gt;-&lt;model&gt;-&lt;isa&gt;</code>, for example <code>claude-code-claude-opus-4-8-sve</code>.</li>
+      </ul>
+    </article>
+
+    <article data-page="run-an-agent" hidden>
+      <p class="crumb">Guides</p>
+      <h1>Run an agent</h1>
+      <p class="lead"><code>test_scripts/bench_fleet.py</code> starts an EC2 instance for the target extension, runs the agent on every definition you name, and copies the results back.</p>
+      <div class="codehead"><span>shell</span><button class="copy" type="button">Copy</button></div>
+<pre><code style="background:none;padding:0">python3 test_scripts/bench_fleet.py --harness claude-code --model claude-opus-4-8 \
+    --dataset simd-loop --isa sve --definitions "loop_001 loop_002"</code></pre>
+      <p><code>--dataset</code> is <code>ncnn</code>, <code>simd-loop</code>, <code>llama.cpp</code> or <code>kleidiai</code>. Without <code>--definitions</code> every definition of the dataset runs. <code>--max-iterations</code> (default 40) caps the compile, evaluate and disassemble calls per kernel.</p>
+      <h2 id="ra-harness">Harnesses</h2>
+      <div class="tbl"><table>
+        <thead><tr><th>Harness</th><th><code style="background:none;padding:0">--harness</code></th><th>Needs</th></tr></thead>
+        <tbody>
+          <tr><td>Claude Code</td><td><code>claude-code</code></td><td><code>claude</code> CLI, logged in</td></tr>
+          <tr><td>Codex</td><td><code>codex</code></td><td><code>codex</code> CLI, logged in</td></tr>
+          <tr><td>Cline</td><td><code>cline</code></td><td><code>cline</code> CLI, <code>--model</code>, an endpoint in its config</td></tr>
+          <tr><td>nanobot</td><td><code>nanobot</code></td><td><code>nanobot</code> CLI and an API key in its config</td></tr>
+          <tr><td>Built-in tool-call loop</td><td><code>own</code></td><td><code>--model</code>, any litellm model id</td></tr>
+          <tr><td>One completion, no tools</td><td><code>single-shot</code></td><td><code>--model</code></td></tr>
+        </tbody>
+      </table></div>
+      <h2 id="ra-results">Results</h2>
+      <p>Each kernel gets <code>agent-runs-&lt;author&gt;/&lt;definition&gt;/</code>, where the author is <code>&lt;harness&gt;-&lt;model&gt;-&lt;isa&gt;</code>:</p>
+      <ul>
+        <li><code>v1.cpp</code>, <code>v2.cpp</code>, …: every version the agent compiled;</li>
+        <li><code>trajectory.jsonl</code>: one line per tool call. A passing <code>evaluate</code> carries <code>time_speedup_geomean</code>.</li>
+      </ul>
+      <div class="callout"><b>Spot by default</b>Instances are spot unless you pass <code>--on-demand</code>. A Linux instance shuts itself down within about 2 hours of its driver stopping.</div>
+    </article>
+
+    <article data-page="own-harness" hidden>
+      <p class="crumb">Guides</p>
+      <h1>Bring your own harness</h1>
+      <p class="lead">Any MCP client can be the agent. Connect it to a server you start by hand, or add an adapter so <code>bench_fleet.py</code> runs it like the built-in harnesses.</p>
+      <h2 id="oh-connect">Connect any MCP client</h2>
+      <div class="codehead"><span>shell</span><button class="copy" type="button">Copy</button></div>
+<pre><code style="background:none;padding:0">python3 skills/launch/launch_session.py launch --isa sve --dataset ncnn --author my-agent</code></pre>
+      <p>This starts (or reuses) an instance for the extension, copies the code over, builds the dataset and starts the server. When it prints <code>tunnel up: http://127.0.0.1:8888/mcp</code>, connect your client to that URL over streamable HTTP. The tools are listed in <a href="#mcp-tools">MCP tools</a>.</p>
+      <ul>
+        <li>Give the client a tool-call timeout of at least 1500 s: one <code>evaluate</code> can take up to 20 minutes.</li>
+        <li>Ctrl-C stops the server and the tunnel. The instance keeps running until you tear it down.</li>
+      </ul>
+      <p>Copy the results back, then remove the instance. Its label is <code>&lt;dataset&gt;-&lt;author&gt;</code> and its address is in <code>provisioning/eval_config.json</code>:</p>
+      <div class="codehead"><span>shell</span><button class="copy" type="button">Copy</button></div>
+<pre><code style="background:none;padding:0">python3 skills/launch/launch_session.py sync-results --host &lt;address&gt; --author my-agent --local-results-dir results/
+python3 skills/launch/launch_session.py teardown --label ncnn-my-agent</code></pre>
+      <div class="callout warn"><b>No call budget</b>A server started this way does not limit tool calls. <code>bench_fleet.py</code> stops each kernel after 40 <code>compile</code>, <code>evaluate</code> and <code>disassemble</code> calls; keep your agent to the same budget to compare with its results.</div>
+      <h2 id="oh-adapter">Add a harness to bench_fleet</h2>
+      <ol>
+        <li>Write the agent's instructions in <code>skills/&lt;name&gt;/&lt;name&gt;-kernel-session/SKILL.md</code>. It becomes the agent's system prompt.</li>
+        <li>Subclass <code>HarnessAdapter</code> in <code>test_scripts/harness_adapters/&lt;name&gt;.py</code> and implement <code>run_job(job, *, endpoint, author, log_path)</code> and <code>sandbox_runtime_paths()</code>. Point the agent at <code>endpoint</code> with a tool timeout of at least 1500 s. <code>claude_code.py</code> is a complete example.</li>
+        <li>Export the class from <code>test_scripts/harness_adapters/__init__.py</code>, and register it in <code>test_scripts/bench_fleet.py</code>: the import, <code>ADAPTER_CLASSES</code>, the branch in <code>run_fleet</code> and the <code>--harness</code> choices.</li>
+      </ol>
+      <p>The task prompt is the adapter's <code>prompt_template</code>, filled with the definition, dataset, expert author, extension and call budget.</p>
+      <h2 id="oh-python">From Python</h2>
+      <p><code>eval/mcp_client.py</code> wraps a running server as a client whose tool schemas are in litellm format. <code>eval/evaluator.py</code> holds the tool-call loop behind <code>--harness own</code>, a starting point for an agent of your own.</p>
+    </article>
+
+    <article data-page="kgen" hidden>
+      <p class="crumb">Guides</p>
+      <h1>Add a kernel with kgen</h1>
+      <p class="lead">A coding agent writes the task files by following four skills; kgen checks them and puts them in place. People confirm the definition, choose the expert library, and approve hand-picked sizes.</p>
+      <h2 id="kg-skills">The four skills</h2>
+      <p>They are in <code>.claude/skills/</code>, so Claude Code finds them when it runs in the repository.</p>
+      <div class="tbl"><table>
+        <thead><tr><th>Skill</th><th>Writes</th></tr></thead>
+        <tbody>
+          <tr><td><code>gen-definition</code></td><td>The definition: shapes, dtypes, tags and the reference.</td></tr>
+          <tr><td><code>gen-workload</code></td><td>The workloads. For quantized kernels, also captured inputs and the SQNR floor.</td></tr>
+          <tr><td><code>gen-candidate-solution</code></td><td><code>reference-scalar</code>, the plain C++ starting point.</td></tr>
+          <tr><td><code>gen-baseline-solution</code></td><td>The expert solution, which calls the library's own kernel.</td></tr>
+        </tbody>
+      </table></div>
+      <h2 id="kg-commands">Commands</h2>
+      <div class="codehead"><span>shell</span><button class="copy" type="button">Copy</button></div>
+<pre><code style="background:none;padding:0">python -m kgen show &lt;similar-definition&gt; --full     <span class="c"># start from a task like it</span>
+python -m kgen add definition def.json
+python -m kgen add workload workloads.jsonl --definition &lt;name&gt;
+python -m kgen add solution reference-scalar.json
+python -m kgen add solution baseline.json
+python -m kgen check &lt;name&gt;</code></pre>
+      <p><code>add</code> checks a file and writes it to its place in <code>bench-trace/</code>. To overwrite a file, put <code>--replace</code> before the kind: <code>python -m kgen add --replace workload …</code></p>
+      <h2 id="kg-check">What check verifies</h2>
+      <ul>
+        <li>The files: schema, names, workloads that set exactly the definition's variable axes and inputs, and tensor files with the declared shape and dtype. <code>--static-only</code> stops here.</li>
+        <li>The reference runs and returns outputs of the declared shapes.</li>
+        <li><code>reference-scalar</code> and the expert solution build, run and match the reference. This part runs only on an AArch64 machine.</li>
+      </ul>
+      <p><code>check</code> times nothing. On the target processor, <code>python -m kgen autovec --isa &lt;isa&gt; --definitions &lt;name&gt;</code> flags an expert solution that is more than 2× slower than the auto-vectorized starting point.</p>
+      <div class="callout"><b>Quantized kernels</b>Kernels tagged <code>correctness:sqnr</code> also need real inputs and an SQNR floor: run <code>kgen capture pytorch</code>, then <code>kgen calibrate --author reference-scalar --baseline-author &lt;author&gt;</code> on an AArch64 machine.</div>
+    </article>
+
+    <article data-page="e2e" hidden>
+      <p class="crumb">Guides</p>
+      <h1>End to end in llama.cpp</h1>
+      <p class="lead">Put an agent's matrix-multiply kernels into llama.cpp and time a whole model against stock llama.cpp with <code>llama-bench</code>, on Graviton4 (SVE2).</p>
+      <h2 id="e2e-models">Models</h2>
+      <div class="tbl"><table>
+        <thead><tr><th><code style="background:none;padding:0">--model</code></th><th>Weights (Q4_K_M)</th><th>Smallest instance</th></tr></thead>
+        <tbody>
+          <tr><td><code>qwen3.5-4b</code></td><td><code>unsloth/Qwen3.5-4B-GGUF</code></td><td>c8g.xlarge</td></tr>
+          <tr><td><code>llama-3.1-8b</code></td><td><code>bartowski/Meta-Llama-3.1-8B-Instruct-GGUF</code></td><td>c8g.4xlarge</td></tr>
+        </tbody>
+      </table></div>
+      <p>Their kernels are the 18 llama.cpp definitions tagged <code>e2e:&lt;model&gt;</code>. Other models are in <code>config/e2e_models.json</code>.</p>
+      <h2 id="e2e-run">Run it</h2>
+      <p>First run an agent on the model's definitions with <code>bench_fleet.py --dataset llama.cpp --isa sve2</code>. Then, with that run's author name:</p>
+      <div class="codehead"><span>shell</span><button class="copy" type="button">Copy</button></div>
+<pre><code style="background:none;padding:0"><span class="c"># on your machine: build stock and patched llama.cpp on the instance, download the model</span>
+python -m e2e evaluate --model qwen3.5-4b --steps deploy --label &lt;label&gt; --agent-build
+
+<span class="c"># on the instance, in ~/arm-bench</span>
+~/venv/bin/python3 -m e2e evaluate --model qwen3.5-4b --steps kernel_set --author &lt;author&gt; --rows-abi
+~/venv/bin/python3 -m e2e evaluate --model qwen3.5-4b --steps measure --threads 1 4 16
+~/venv/bin/python3 -m e2e evaluate --model qwen3.5-4b --steps report</code></pre>
+      <h2 id="e2e-what">What it measures</h2>
+      <ul>
+        <li>Only matrix multiplies with q4_K, q5_K or q6_K weights are replaced. Everything else is stock llama.cpp.</li>
+        <li>Three builds take turns: stock, stock without weight repacking and KleidiAI, and that build with the agent's kernels. Speedup is against stock.</li>
+        <li>Defaults: 512-token prompt, 128 generated tokens, 5 repetitions, 4 threads.</li>
+        <li>Before timing, every kernel must be seen running inside llama.cpp, and a kernel that fails to load stops the run. <code>--perplexity &lt;text file&gt;</code> also runs <code>llama-perplexity</code>.</li>
+      </ul>
+      <p>Results go to <code>e2e-runs/llamacpp-&lt;model&gt;-sve2/e2e_results.json</code>.</p>
+    </article>
+
+    <article data-page="aws-setup" hidden>
+      <p class="crumb">Guides</p>
+      <h1>AWS setup</h1>
+      <p class="lead"><code>bench_fleet.py</code> and <code>launch_session.py</code> start instances with Terraform. You provide the account, a security group and an SSH key; the code creates a key pair and the instances, and copies the repository over.</p>
+      <h2 id="aws-need">What you need</h2>
+      <ul>
+        <li>An AWS account in <code>us-west-2</code>, where the machine images are pinned, with its default VPC.</li>
+        <li>A security group that allows inbound SSH (port 22). The MCP server listens only on 127.0.0.1 and is reached through an SSH tunnel.</li>
+        <li><code>~/.ssh/id_rsa</code> and <code>~/.ssh/id_rsa.pub</code>. For another key, set <code>TF_VAR_ssh_key_files</code>.</li>
+        <li><code>terraform</code>, <code>rsync</code> and <code>ssh</code> on your machine, plus the AWS CLI for Apple M4.</li>
+      </ul>
+      <h2 id="aws-config">Configure</h2>
+      <div class="codehead"><span>shell</span><button class="copy" type="button">Copy</button></div>
+<pre><code style="background:none;padding:0">cp provisioning/workspaces.json.example provisioning/workspaces.json   <span class="c"># set aws_region and security_group_id</span>
+terraform -chdir=terraform init</code></pre>
+      <p><code>aws_profile</code>, <code>account_id</code> and <code>namespace</code> are optional.</p>
+      <h2 id="aws-m4">Apple M4</h2>
+      <p>An M4 instance needs a Dedicated Host, and AWS bills a host for at least 24 hours. The code never allocates one: it uses the newest free <code>mac-m4.metal</code> host in your region. Allocate it yourself and release it when done:</p>
+      <div class="codehead"><span>shell</span><button class="copy" type="button">Copy</button></div>
+<pre><code style="background:none;padding:0">aws ec2 allocate-hosts --instance-type mac-m4.metal --availability-zone &lt;zone&gt; --quantity 1 --region us-west-2
+aws ec2 release-hosts --host-ids &lt;host-id&gt;</code></pre>
+      <h2 id="aws-stop">Shut instances down</h2>
+      <p><code>bench_fleet.py</code> destroys its instance after a successful run. After a failed run the instance stays: a Linux instance shuts itself down about 2 hours later (<code>--watchdog-minutes</code>), a Mac stays up. <code>launch_session.py</code> never shuts one down on its own.</p>
+      <div class="codehead"><span>shell</span><button class="copy" type="button">Copy</button></div>
+<pre><code style="background:none;padding:0">python3 provisioning/provision.py --status
+python3 provisioning/provision.py --teardown --label &lt;label&gt;</code></pre>
+      <p>Without <code>--label</code>, <code>--teardown</code> destroys every instance listed in <code>provisioning/eval_config.json</code>.</p>
+    </article>
+
+    <article data-page="mcp-tools" hidden>
+      <p class="crumb">Reference</p>
+      <h1>MCP tools</h1>
+      <p class="lead">The tools every harness sees. They behave the same across harnesses and processors; the server runs on the instance being tested.</p>
+      <div class="tbl"><table>
+        <thead><tr><th>Tool</th><th>Arguments</th><th>What it does</th><th>Returns</th></tr></thead>
+        <tbody>
+          <tr><td><code>check_progress</code></td><td><code>definition</code></td><td>Looks up the best result so far on this definition.</td><td>Its version, metrics and code.</td></tr>
+          <tr><td><code>compile</code></td><td><code>definition</code>, <code>code</code></td><td>Compiles the agent's <code>kernel.cpp</code>; the harness and binding files are added automatically.</td><td>A version number, or the compiler error.</td></tr>
+          <tr><td><code>evaluate</code></td><td><code>definition</code>, <code>version</code></td><td>Checks correctness on all workloads, stopping at the first failure; if correct, times the kernel. A new best result is saved at once.</td><td>Errors, or speedups.</td></tr>
+          <tr><td><code>disassemble</code></td><td><code>definition</code>, <code>version</code>, optional <code>fn</code></td><td>Disassembles the kernel entry symbol, or <code>fn</code>.</td><td>Up to 300 lines of AArch64 assembly.</td></tr>
+        </tbody>
+      </table></div>
+      <h2 id="mt-budget">Call budget</h2>
+      <p><code>compile</code>, <code>evaluate</code> and <code>disassemble</code> each count as one call; <code>check_progress</code> does not. Over the budget, a call returns <code>MAX_ITERATIONS_EXCEEDED</code>. <code>bench_fleet.py</code> sets 40 per kernel; a server started by hand has no budget. See <a href="#own-harness">Bring your own harness</a>.</p>
+    </article>
+
+    <article data-page="cli" hidden>
+      <p class="crumb">Reference</p>
+      <h1>CLI</h1>
+      <p class="lead"><code>python -m bench.cli</code> checks and times solutions on the machine you run it on. Global flags go before the subcommand.</p>
+<pre><code style="background:none;padding:0">python -m bench.cli [--root bench-trace] [--log-level INFO] &lt;subcommand&gt; …</code></pre>
+      <div class="tbl"><table>
+        <thead><tr><th>Subcommand</th><th>What it does</th><th>Main flags</th></tr></thead>
+        <tbody>
+          <tr><td><code>summary</code></td><td>Counts definitions, solutions, workloads and traces.</td><td></td></tr>
+          <tr><td><code>list-definitions</code></td><td>Each definition with its op type and its number of solutions and workloads.</td><td></td></tr>
+          <tr><td><code>list-solutions</code></td><td>Each solution with its definition, author and dataset.</td><td><code>--definition</code></td></tr>
+          <tr><td><code>bench</code></td><td>Checks one solution on every workload and times it. Saves traces.</td><td><code>--definition</code>, <code>--solution</code>, <code>--dataset</code>, <code>--isa</code>, <code>--workload-axes N=1,H=56</code></td></tr>
+          <tr><td><code>bench-author</code></td><td>Runs every solution of one author in a dataset and reports which fail.</td><td><code>--dataset</code>, <code>--author</code>, <code>--op-type</code>, <code>--definition</code>, <code>--dump-traces</code></td></tr>
+          <tr><td><code>collect-baselines</code></td><td>Times the expert solutions and stores the results.</td><td><code>--dataset</code>, <code>--isa</code>, <code>--definition</code></td></tr>
+          <tr><td><code>retime</code></td><td>Times stored solutions again against freshly timed experts.</td><td><code>--dataset</code>, <code>--isa</code>, <code>--author</code> or <code>--index</code>, <code>--pass-id</code>, <code>--out</code></td></tr>
+        </tbody>
+      </table></div>
+      <ul>
+        <li><code>--dataset</code> is <code>ncnn</code>, <code>llama.cpp</code>, <code>simd-loop</code> or <code>kleidiai</code>. <code>--isa</code> is <code>neon</code>, <code>sve</code>, <code>sve2</code> or <code>sme2</code>; SIMD Loops needs it, because its expert solution differs per extension.</li>
+        <li>Building the ncnn and llama.cpp experts needs their source checkouts: set <code>NCNN_ROOT</code> and <code>LLAMA_CPP_ROOT</code>.</li>
+      </ul>
+      <div class="callout"><b>Wrong root, empty output</b>A missing <code>--root</code> directory is created empty, so a wrong path prints empty lists rather than an error.</div>
+      <h2 id="cli-other">Other entry points</h2>
+      <ul>
+        <li><code>python -m kgen</code>: build and check tasks. See <a href="#kgen">Add a kernel with kgen</a>.</li>
+        <li><code>python -m e2e</code>: end-to-end runs. See <a href="#e2e">End to end in llama.cpp</a>.</li>
+        <li><code>test_scripts/bench_fleet.py</code> and <code>skills/launch/launch_session.py</code>: run agents. See <a href="#run-an-agent">Run an agent</a>.</li>
+      </ul>
+    </article>
+
+    <article data-page="configuration" hidden>
+      <p class="crumb">Reference</p>
+      <h1>Configuration</h1>
+      <p class="lead">Settings live in <code>config/</code>, in three files under <code>provisioning/</code> and <code>eval/</code>, and in environment variables.</p>
+      <div class="tbl"><table>
+        <thead><tr><th>File</th><th>What it sets</th></tr></thead>
+        <tbody>
+          <tr><td><code>config/kernel_contracts.yaml</code></td><td>Each extension's compile flags and instance type, correctness tolerances, the timing protocol, the expert authors, MCP tool timeouts and banned source patterns.</td></tr>
+          <tr><td><code>config/dataset_builds.json</code></td><td>How ncnn and llama.cpp are built on an instance.</td></tr>
+          <tr><td><code>config/e2e_models.json</code></td><td>The models for end-to-end runs.</td></tr>
+          <tr><td><code>config/rsync_allowlist.json</code></td><td>What is copied to an instance.</td></tr>
+          <tr><td><code>provisioning/workspaces.json</code></td><td>Your AWS region, security group and profile. Copy it from the <code>.example</code>.</td></tr>
+          <tr><td><code>provisioning/eval_config.json</code></td><td>The instances that are up. Provisioning writes it; do not create it yourself.</td></tr>
+          <tr><td><code>eval/llm_providers.json</code></td><td>API keys and endpoints for the <code>own</code> and <code>single-shot</code> harnesses. Copy it from the <code>.example</code>; empty values fall back to environment variables.</td></tr>
+          <tr><td><code>.env</code></td><td>Environment variables, loaded by provisioning, <code>launch_session.py</code> and the harness adapters.</td></tr>
+        </tbody>
+      </table></div>
+      <div class="callout warn"><b>Timing protocol</b>Changing <code>warmup</code>, <code>repeat</code>, <code>inner_iters</code> or <code>target_sample_ns</code> in <code>eval_defaults</code> changes the timing protocol: every stored expert timing is collected again.</div>
+      <h2 id="cf-env">Environment variables</h2>
+      <div class="tbl"><table>
+        <thead><tr><th>Name</th><th>Purpose</th></tr></thead>
+        <tbody>
+          <tr><td><code>OPENAI_API_KEY</code>, <code>OPENAI_BASE_URL</code></td><td>Endpoint for the Codex and Cline harnesses.</td></tr>
+          <tr><td><code>NANOBOT_CONFIG_BASE</code></td><td>nanobot's config file. Default: <code>skills/nanobot/nanobot-kernel-session/config.json</code>.</td></tr>
+          <tr><td><code>ARMBENCH_CC_JOB_ROOT</code></td><td>Where Claude Code jobs run; must be outside the repository. Default: the system temp directory.</td></tr>
+          <tr><td><code>NCNN_ROOT</code>, <code>LLAMA_CPP_ROOT</code></td><td>Library checkouts for building the experts locally.</td></tr>
+          <tr><td><code>TF_VAR_ssh_key_files</code></td><td>An SSH key per instance label, for example <code>{"&lt;label&gt;": "~/.ssh/key.pem"}</code>.</td></tr>
+          <tr><td><code>OMP_NUM_THREADS</code></td><td>Must be unset or 1; otherwise timing refuses to run.</td></tr>
+        </tbody>
+      </table></div>
+    </article>
+
+    <nav class="pager" id="pager" aria-label="Previous and next page"></nav>
+  </main>
+
+  <aside class="toc" aria-label="On this page"><h4>On this page</h4><ul id="toc"></ul></aside>
+</div>
+
+<script>
+(function () {
+  var ORDER = ['introduction', 'installation', 'quickstart', 'task-format', 'hardware', 'scoring', 'datasets',
+               'run-an-agent', 'own-harness', 'kgen', 'e2e', 'aws-setup', 'mcp-tools', 'cli', 'configuration'];
+  var articles = {};
+  document.querySelectorAll('article[data-page]').forEach(function (a) { articles[a.dataset.page] = a; });
+  var links = Array.prototype.slice.call(document.querySelectorAll('.side a'));
+  var side = document.getElementById('side');
+  var menuBtn = document.getElementById('menu-btn');
+
+  function title(key) { return articles[key].querySelector('h1').textContent; }
+  function route() {
+    var key = (location.hash || '').slice(1);
+    if (!articles[key]) {
+      var holder = key && document.getElementById(key);
+      var art = holder && holder.closest('article');
+      key = art ? art.dataset.page : 'introduction';
+    }
+    Object.keys(articles).forEach(function (k) { articles[k].hidden = k !== key; });
+    links.forEach(function (a) { if (a.getAttribute('href') === '#' + key) a.setAttribute('aria-current', 'page'); else a.removeAttribute('aria-current'); });
+    var hs = articles[key].querySelectorAll('h2[id]');
+    document.getElementById('toc').innerHTML = Array.prototype.map.call(hs, function (h) {
+      return '<li><a href="#' + h.id + '">' + h.textContent + '</a></li>';
+    }).join('');
+    var i = ORDER.indexOf(key), prev = ORDER[i - 1], next = ORDER[i + 1];
+    document.getElementById('pager').innerHTML =
+      (prev ? '<a href="#' + prev + '"><small>Previous</small>' + title(prev) + '</a>' : '') +
+      (next ? '<a class="next" href="#' + next + '"><small>Next</small>' + title(next) + '</a>' : '');
+    var target = location.hash && document.getElementById(location.hash.slice(1));
+    if (target && target.tagName === 'H2') target.scrollIntoView(); else window.scrollTo(0, 0);
+    side.classList.remove('open'); menuBtn.setAttribute('aria-expanded', 'false');
+  }
+  window.addEventListener('hashchange', route);
+  route();
+
+  menuBtn.addEventListener('click', function () {
+    var open = side.classList.toggle('open');
+    menuBtn.setAttribute('aria-expanded', String(open));
+  });
+
+  // Search: filter the navigation by title and keywords
+  var q = document.getElementById('q');
+  q.addEventListener('input', function () {
+    var term = q.value.trim().toLowerCase(), hits = 0;
+    document.querySelectorAll('.side li').forEach(function (li) {
+      var a = li.querySelector('a'), t = li.textContent.toLowerCase() + ' ' + (a ? a.dataset.k : '');
+      var show = !term || (a && t.indexOf(term) !== -1);
+      li.hidden = !show; if (show && a) hits++;
+    });
+    document.querySelectorAll('.side .group').forEach(function (g) {
+      g.hidden = !Array.prototype.some.call(g.querySelectorAll('li'), function (li) { return !li.hidden; });
+    });
+    document.getElementById('nohit').hidden = hits > 0 || !term;
+    if (term && side.classList.contains('open') === false && window.innerWidth <= 760) { side.classList.add('open'); menuBtn.setAttribute('aria-expanded', 'true'); }
+  });
+
+  // Copy buttons copy the next code block
+  document.querySelectorAll('.copy').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      var pre = btn.parentNode.nextElementSibling;
+      function done(m) { btn.textContent = m; setTimeout(function () { btn.textContent = 'Copy'; }, 1500); }
+      function fallback() { var r = document.createRange(); r.selectNodeContents(pre); var s = getSelection(); s.removeAllRanges(); s.addRange(r); done('Selected'); }
+      try { navigator.clipboard.writeText(pre.innerText).then(function () { done('Copied'); }, fallback); } catch (e) { fallback(); }
+    });
+  });
+})();
+</script>
