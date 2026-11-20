@@ -505,7 +505,7 @@ footer .wrap { display: flex; flex-wrap: wrap; gap: 8px 24px; justify-content: s
       <span class="off opt" aria-disabled="true">Paper</span>
       <a class="primary" href="docs/">Docs</a>
       <a href="https://github.com/cmu-l3/kernel-shift">Code</a>
-      <a href="https://huggingface.co/datasets/arm-bench/KernelShift">Dataset</a>
+      <a href="https://huggingface.co/datasets/l3lab/KernelShift">Dataset</a>
     </nav>
   </div>
 </header>
@@ -813,7 +813,7 @@ footer .wrap { display: flex; flex-wrap: wrap; gap: 8px 24px; justify-content: s
 git clone https://github.com/cmu-l3/kernel-shift
 cd kernel-shift
 pip install -r requirements.txt
-hf download arm-bench/KernelShift \
+hf download l3lab/KernelShift \
     --repo-type dataset --local-dir bench-trace
 
 python -m bench.cli bench --dataset simd-loop --isa sve \

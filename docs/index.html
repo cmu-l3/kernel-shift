@@ -159,7 +159,7 @@ td code { white-space: nowrap; }
     <nav aria-label="Site">
       <a href="../">Home</a>
       <a href="https://github.com/cmu-l3/kernel-shift">Code</a>
-      <a href="https://huggingface.co/datasets/arm-bench/KernelShift">Dataset</a>
+      <a href="https://huggingface.co/datasets/l3lab/KernelShift">Dataset</a>
     </nav>
   </div>
 </header>
@@ -224,7 +224,7 @@ td code { white-space: nowrap; }
           <tr><td><a href="https://gitlab.arm.com/kleidi/kleidiai">KleidiAI</a></td><td>GEMM and convolution micro-kernels</td><td>Arm's vendor micro-kernels</td></tr>
         </tbody>
       </table></div>
-      <p>The tasks live in the Hugging Face dataset <a href="https://huggingface.co/datasets/arm-bench/KernelShift"><code>arm-bench/KernelShift</code></a>. Its <code>TASKS.md</code> lists, for every definition, the expert baseline on each hardware tier and whether it runs there.</p>
+      <p>The tasks live in the Hugging Face dataset <a href="https://huggingface.co/datasets/l3lab/KernelShift"><code>l3lab/KernelShift</code></a>. Its <code>TASKS.md</code> lists, for every definition, the expert baseline on each hardware tier and whether it runs there.</p>
     </article>
 
     <article data-page="installation" hidden>
@@ -236,7 +236,7 @@ td code { white-space: nowrap; }
 <pre><code style="background:none;padding:0">git clone https://github.com/cmu-l3/kernel-shift && cd kernel-shift
 python3 -m venv .venv && . .venv/bin/activate
 pip install -r requirements.txt
-hf download arm-bench/KernelShift --repo-type dataset --local-dir bench-trace</code></pre>
+hf download l3lab/KernelShift --repo-type dataset --local-dir bench-trace</code></pre>
       <h2 id="install-check">Check that the dataset loaded</h2>
       <p>Every tool reads the dataset from <code>bench-trace/</code>.</p>
 <pre><span class="p">$ </span>python -m bench.cli summary
@@ -352,7 +352,7 @@ python -m bench.cli list-solutions</code></pre>
     <article data-page="datasets" hidden>
       <p class="crumb">Concepts</p>
       <h1>Datasets</h1>
-      <p class="lead">The Hugging Face dataset <a href="https://huggingface.co/datasets/arm-bench/KernelShift"><code>arm-bench/KernelShift</code></a> holds 144 definitions. 99 of them are the current evaluation set.</p>
+      <p class="lead">The Hugging Face dataset <a href="https://huggingface.co/datasets/l3lab/KernelShift"><code>l3lab/KernelShift</code></a> holds 144 definitions. 99 of them are the current evaluation set.</p>
       <div class="tbl"><table>
         <thead><tr><th>Library</th><th><code style="background:none;padding:0">--dataset</code></th><th>Definitions</th><th>Evaluated</th><th>Expert author</th></tr></thead>
         <tbody>
@@ -488,7 +488,7 @@ python -m kgen check &lt;name&gt;</code></pre>
 <pre><code style="background:none;padding:0"><span class="c"># on your machine: build stock and patched llama.cpp on the instance, download the model</span>
 python -m e2e evaluate --model qwen3.5-4b --steps deploy --label &lt;label&gt; --agent-build
 
-<span class="c"># on the instance, in ~/arm-bench</span>
+<span class="c"># on the instance, in ~/kernelshift</span>
 ~/venv/bin/python3 -m e2e evaluate --model qwen3.5-4b --steps kernel_set --author &lt;author&gt; --rows-abi
 ~/venv/bin/python3 -m e2e evaluate --model qwen3.5-4b --steps measure --threads 1 4 16
 ~/venv/bin/python3 -m e2e evaluate --model qwen3.5-4b --steps report</code></pre>
