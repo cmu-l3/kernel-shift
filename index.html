@@ -504,7 +504,7 @@ footer .wrap { display: flex; flex-wrap: wrap; gap: 8px 24px; justify-content: s
     <nav aria-label="Project links">
       <span class="off opt" aria-disabled="true">Paper</span>
       <a class="primary" href="docs/">Docs</a>
-      <a href="https://github.com/ArtificialRay/KernelShift">Code</a>
+      <a href="https://github.com/cmu-l3/kernel-shift">Code</a>
       <a href="https://huggingface.co/datasets/arm-bench/KernelShift">Dataset</a>
     </nav>
   </div>
@@ -810,8 +810,8 @@ footer .wrap { display: flex; flex-wrap: wrap; gap: 8px 24px; justify-content: s
         <div class="block">
           <div class="top"><span>Install, then test and time one task</span><button class="copy" data-copy="code-install" type="button">Copy</button></div>
 <pre id="code-install"><span class="c"># Python 3.12+ and clang++</span>
-git clone https://github.com/ArtificialRay/KernelShift
-cd KernelShift
+git clone https://github.com/cmu-l3/kernel-shift
+cd kernel-shift
 pip install -r requirements.txt
 hf download arm-bench/KernelShift \
     --repo-type dataset --local-dir bench-trace
