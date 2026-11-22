@@ -270,7 +270,7 @@ section .head > .label, .run-head > .label { justify-self: start; font-size: var
 .track { position: relative; height: 26px; }
 .track .ref { position: absolute; top: -4px; bottom: -4px; width: 0; border-left: 1.5px dashed var(--ink); opacity: .55; }
 .bar-a, .bar-b { position: absolute; left: 0; border-radius: 2px; }
-.bar-a { top: 0; height: 15px; background: var(--ink); }
+.bar-a { top: 0; height: 15px; background: var(--sve); }
 .bar-b { top: 18px; height: 8px; background: var(--neon); opacity: .65; }
 .val { font-family: var(--font-mono); font-size: var(--fs-md); font-variant-numeric: tabular-nums; text-align: right; }
 .val small { display: block; color: var(--muted); font-size: var(--fs-sm); }
@@ -285,7 +285,7 @@ section .head > .label, .run-head > .label { justify-self: start; font-size: var
 .pair .val { color: var(--sve); }
 .pair .bar-b { background: var(--sme2); opacity: 1; height: 15px; top: 19px; }
 .pair .val small { color: var(--sme2); font-size: var(--fs-md); }
-.pair.lm .bar-a { background: var(--ink); }
+.pair.lm .bar-a { background: var(--sve); }
 .pair.lm .bar-b { background: var(--neon); }
 .pair.lm .val { color: var(--ink); }
 .pair.lm .val b { font-weight: inherit; }
@@ -742,7 +742,7 @@ footer .wrap { display: flex; flex-wrap: wrap; gap: 8px 24px; justify-content: s
             <button class="more-btn" id="full-btn" type="button" aria-expanded="false" aria-controls="full-results">Full results <span class="chev" aria-hidden="true">▾</span></button>
           </div>
           <div class="chart" role="img" aria-label="Best tested agent score and compiler-only score per library; 1.0 is the library's own code">
-            <div class="legend"><span><i style="background:var(--ink)"></i>best tested agent (named under each library)</span><span><i style="background:var(--neon)"></i>compiler only</span><span><i style="border-left:1.5px dashed var(--ink);width:0;height:10px;border-radius:0"></i>library's code = 1.0</span></div>
+            <div class="legend"><span><i style="background:var(--sve)"></i>best tested agent (named under each library)</span><span><i style="background:var(--neon)"></i>compiler only</span><span><i style="border-left:1.5px dashed var(--ink);width:0;height:10px;border-radius:0"></i>library's code = 1.0</span></div>
             <div id="chart-sve"></div>
             <div class="axis"><span></span><div class="ticks" id="ticks-sve"></div><span></span></div>
           </div>
@@ -779,7 +779,7 @@ footer .wrap { display: flex; flex-wrap: wrap; gap: 8px 24px; justify-content: s
             <p>We put agent-written code for the matrix multiplications of two LLMs into llama.cpp on AWS Graviton4. Compared with the original llama.cpp, prompt processing gets 1.3 to 1.6 times faster and token generation 1.04 to 1.1 times faster.</p>
           </div>
           <div class="chart pair lm" aria-label="Speedup over the original llama.cpp for prompt processing and token generation, for two LLMs">
-            <div class="legend"><span><i style="background:var(--ink)"></i>prompt processing</span><span><i style="background:var(--neon)"></i>token generation</span><span><i style="border-left:1.5px dashed var(--ink);width:0;height:10px;border-radius:0"></i>original llama.cpp = 1.0</span></div>
+            <div class="legend"><span><i style="background:var(--sve)"></i>prompt processing</span><span><i style="background:var(--neon)"></i>token generation</span><span><i style="border-left:1.5px dashed var(--ink);width:0;height:10px;border-radius:0"></i>original llama.cpp = 1.0</span></div>
             <div class="seg-row"><span class="seg" id="lm-threads" role="group" aria-label="CPU threads">CPU threads <button type="button" data-n="1" aria-pressed="false">1</button><button type="button" data-n="4" aria-pressed="false">4</button><button type="button" data-n="16" aria-pressed="true">16</button></span></div>
             <div id="chart-lm"></div>
             <div class="axis"><span></span><div class="ticks" id="ticks-lm"></div><span></span></div>
