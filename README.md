@@ -2,7 +2,7 @@
 
 **Benchmarking Kernel Optimization Across Evolving Hardware**
 
-Project website: <https://cmu-l3.github.io/kernel-shift/>
+Paper: <https://arxiv.org/abs/2611.29590> · Project website: <https://cmu-l3.github.io/kernel-shift/>
 
 ![KernelShift overview](docs/figures/overview.png)
 
@@ -176,6 +176,20 @@ environment. `own` runs inside the driver process, so the sandbox is off for it 
   variable and the timing protocol
 - [`eval/README.md`](eval/README.md): the built-in agent loop
 - [`CLAUDE.md`](CLAUDE.md): how the code is organized
+
+## Citation
+
+```bibtex
+@misc{huang2026kernelshift,
+  title         = {KernelShift: Benchmarking Kernel Optimization Across Evolving Hardware},
+  author        = {Shuaiwei Huang and Weihua Du and Allen Wu and Ivan Fox and Manupa Karunaratne and Yiming Yang and Sean Welleck},
+  year          = {2026},
+  eprint        = {2611.29590},
+  archivePrefix = {arXiv},
+  primaryClass  = {cs.CL},
+  url           = {https://arxiv.org/abs/2611.29590}
+}
+```
 
 ## License
 
